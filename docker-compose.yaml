@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:6.2
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+    networks:
+      - url-shortener-network
+
+  service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - local.env
+    ports:
+      - "8083:8083"
+    depends_on:
+      - redis
+    networks:
+      - url-shortener-network
+
+networks:
+  url-shortener-network:
+    driver: bridge

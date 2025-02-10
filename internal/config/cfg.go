@@ -10,12 +10,27 @@ import (
 type Config struct {
 	Env        string `yaml:"env" env-required:"true"`
 	HTTPServer `yaml:"http_server"`
+	Storage    `yaml:"storage"`
 }
 
 type HTTPServer struct {
-	Address     string        `yaml:"address" env-required:"true"`
+	Host        string        `yaml:"host" env-required:"true"`
+	Port        string        `yaml:"port" env-required:"true"`
+	Network     string        `yaml:"network" env-required:"true"`
 	ReqTimeout  time.Duration `yaml:"request_timeout" env-default:"4s"`
 	IdleTimeout time.Duration `yaml:"idle_timeout" env-default:"60s"`
+}
+
+type Storage struct {
+	Redis    Redis    `yaml:"redis"`
+	Postgres Postgres `yaml:"postgres"`
+}
+type Redis struct {
+	Address string `yaml:"address"`
+}
+type Postgres struct {
+	Host string `yaml:"host"`
+	Port string `yaml:"port"`
 }
 
 func MustLoad(configPath string) *Config {
@@ -27,7 +42,7 @@ func MustLoad(configPath string) *Config {
 	var cfg Config
 	err = cleanenv.ReadConfig(configPath, &cfg)
 	if err != nil {
-		log.Fatalf("ошибка: чтение конфиг. файла: %v", err)
+		log.Fatalf("ошибка при чтении файла конфиг.: %v", err)
 	}
 	return &cfg
 }

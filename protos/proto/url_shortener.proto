@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+package urlshortener;
+
+option go_package = "./protos/genv1;genv1";
+
+service UrlShortener {
+  rpc SaveUrl(SaveUrlRequest) returns (SaveUrlResponse);
+  rpc GetUrl(GetUrlRequest) returns (GetUrlResponse);
+  rpc DeleteUrl(DeleteUrlRequest) returns (DeleteUrlResponse);
+}
+
+message SaveUrlRequest {
+  string url = 1; 
+}
+
+message SaveUrlResponse {
+  string alias = 1;
+}
+
+message GetUrlRequest {
+  string alias = 1;
+}
+
+message GetUrlResponse {
+  string url = 1;
+}
+
+message DeleteUrlRequest {
+  string alias = 1;
+}
+
+message DeleteUrlResponse {
+  string status = 1;
+}
+
+
+

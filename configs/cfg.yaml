@@ -1,5 +1,15 @@
 env: "local" # local, dev, prod
+
 http_server:
-  address: "localhost:8081"
+  host: "localhost"
+  port: "8083"
+  network: "tcp"
   request_timeout: 4s # время на чтение запроса, время на отправку ответа
   idle_timeout: 60s # время жизни соед. с клиентом
+
+storage:
+  redis:
+    address: "redis:6379"
+  postgres:
+    host: "localhost"
+    port: "5432"
