@@ -15,7 +15,7 @@ func main() {
 	flag.StringVar(&storageType, "storage", app.InMemoryStorage, "postgres or default in-memory")
 
 	var configPath string // путь к файлу конф.
-	flag.StringVar(&configPath, "cfg-path", "", "path to config file")
+	flag.StringVar(&configPath, "cfg_path", "", "path to config file")
 
 	flag.Parse()
 

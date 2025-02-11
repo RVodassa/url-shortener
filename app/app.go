@@ -2,11 +2,15 @@ package app
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/RVodassa/url-shortener/internal/config"
 	grpchandler "github.com/RVodassa/url-shortener/internal/handler/grpc"
 	"github.com/RVodassa/url-shortener/internal/service"
+	"github.com/RVodassa/url-shortener/internal/storage"
+	"github.com/RVodassa/url-shortener/internal/storage/inMemory/redisStorage"
 	"github.com/RVodassa/url-shortener/protos/genv1"
+	"github.com/go-redis/redis/v8"
 	"google.golang.org/grpc"
 	"log"
 	"net"
@@ -14,6 +18,12 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+)
+
+// Доступные хранилища
+const (
+	InMemoryStorage = "in-memory"
+	SqlStorage      = "sql"
 )
 
 type App struct {
@@ -34,9 +44,10 @@ func (a *App) Run() {
 	defer cancel()
 
 	// инициализация хранилища
-	store, err := initStore(ctx, a.cfg, a.StorageType)
+	store, err := initStorage(ctx, a.cfg, a.StorageType)
 	if err != nil {
-		log.Fatalf("ошибка: хранилище не готово к работе: %v", err)
+		log.Printf("ошибка: хранилище не готово к работе: %v", err)
+		return
 	}
 
 	// инстанс сервиса
@@ -73,8 +84,34 @@ func (a *App) Run() {
 
 	ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-
 	newGrpcServer.GracefulStop() // Остановка сервера
 
 	// TODO: мягкое завершение работы остальных частей приложения
+}
+
+func initStorage(ctx context.Context, cfg *config.Config, storageType string) (storage.Storage, error) {
+	log.Printf("инициализация хранилища типа: %s", storageType)
+
+	var store storage.Storage
+
+	switch storageType {
+	case InMemoryStorage:
+		// Redis для in-memory storage
+		redisClient := redis.NewClient(&redis.Options{
+			Addr: cfg.Redis.Address,
+		})
+		if err := redisClient.Ping(ctx).Err(); err != nil {
+			return nil, fmt.Errorf("ошибка при подключении к Redis: %v", err)
+		}
+		store = redisStorage.New(redisClient)
+		log.Printf("хранилище доступно по адресу: %s\n", cfg.Redis.Address)
+
+	case SqlStorage:
+		// Postgres для sql storage
+		return nil, errors.New("postgres не реализован")
+	default:
+		return nil, errors.New("неизвестный тип хранилища")
+	}
+
+	return store, nil
 }

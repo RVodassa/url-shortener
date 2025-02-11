@@ -31,7 +31,7 @@ COPY ./configs /app/url-shortener/configs
 EXPOSE 8083
 
 # Запускаем приложение
-ENTRYPOINT ["sh", "-c", "./url-shortener -cfg-path $CFG_PATH -storage $STORAGE"]
+ENTRYPOINT ["sh", "-c", "./url-shortener -cfg_path $CFG_PATH -storage $STORAGE"]
 
 
 

@@ -4,24 +4,33 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/RVodassa/url-shortener/internal/lib/random"
 	"github.com/RVodassa/url-shortener/internal/storage"
 	"net/url"
 )
+
+type RandomProvider interface {
+	RandomString(int) (string, error)
+}
 
 var (
 	ErrNotFound = errors.New("ошибка: url с таким alias не найден")
 	ErrBadUrl   = errors.New("ошибка: недопустимая ссылка")
 )
 
-// TODO: перенести в конфиг
+// TODO: в конфиг
 const aliasLength = 10
 
 type Service struct {
 	Storage storage.Storage
+	Random  RandomProvider
 }
 
-func New(s storage.Storage) *Service {
-	return &Service{s}
+func New(storage storage.Storage) *Service {
+	return &Service{
+		Storage: storage,
+		Random:  random.New(),
+	}
 }
 
 // SaveURL сохраняет URL и возвращает алиас.
@@ -35,17 +44,37 @@ func (s *Service) SaveURL(ctx context.Context, urlStr string) (string, error) {
 	}
 
 	// Генерация алиаса
-	alias := NewRandomString(10)
-	if alias == "" {
-		return "", fmt.Errorf("%s: не удалось сгенерировать алиас", op)
-	}
+	var alias string
 
-	err = s.Storage.SaveURL(ctx, alias, urlStr)
+	for {
+		alias, err = s.Random.RandomString(aliasLength)
+		if err != nil {
+			return "", fmt.Errorf("%s: %w", op, err)
+		}
+
+		err = s.Storage.SaveURL(ctx, alias, urlStr)
+		if err != nil {
+			if errors.Is(err, storage.ErrExistAlias) {
+				continue
+			}
+			return "", fmt.Errorf("%s: %w", op, err)
+		}
+		return alias, nil
+	}
+}
+
+func (s *Service) GetURL(ctx context.Context, alias string) (string, error) {
+	const op = "service.GetURL"
+
+	getUrl, err := s.Storage.GetUrl(ctx, alias)
 	if err != nil {
+		if errors.Is(err, storage.ErrNotFound) {
+			return "", ErrNotFound
+		}
 		return "", fmt.Errorf("%s: %w", op, err)
 	}
 
-	return alias, nil
+	return getUrl, nil
 }
 
 func (s *Service) DeleteURL(ctx context.Context, alias string) error {
@@ -58,18 +87,4 @@ func (s *Service) DeleteURL(ctx context.Context, alias string) error {
 		return fmt.Errorf("%s: %w", op, err)
 	}
 	return nil
-}
-
-func (s *Service) GetURL(ctx context.Context, alias string) (string, error) {
-	const op = "service.DeleteURL"
-
-	getUrl, err := s.Storage.GetUrl(ctx, alias)
-	if err != nil {
-		if errors.Is(err, storage.ErrNotFound) {
-			return "", ErrNotFound
-		}
-		return "", fmt.Errorf("%s: %w", op, err)
-	}
-
-	return getUrl, nil
 }
