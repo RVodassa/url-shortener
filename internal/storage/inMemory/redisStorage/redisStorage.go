@@ -12,16 +12,13 @@ type RedisStorage struct {
 	client *redis.Client
 }
 
-func New(client *redis.Client) *RedisStorage {
-	return &RedisStorage{client: client}
-}
-
 func (r *RedisStorage) SaveURL(ctx context.Context, alias, urlSave string) error {
 	const op = "storage.RedisStorage.SaveURL"
 
 	if alias == "" {
 		return storage.ErrAliasIsEmpty
 	}
+
 	if urlSave == "" {
 		return storage.ErrUrlIsEmpty
 	}
@@ -38,7 +35,6 @@ func (r *RedisStorage) SaveURL(ctx context.Context, alias, urlSave string) error
 	cmd := r.client.Set(ctx, alias, urlSave, 0)
 	if cmd.Err() != nil {
 		return fmt.Errorf("%s: %v: url=%s alias=%s", op, cmd.Err(), urlSave, alias)
-
 	}
 
 	return nil
@@ -55,7 +51,6 @@ func (r *RedisStorage) GetUrl(ctx context.Context, alias string) (string, error)
 	if cmd.Err() != nil {
 		if errors.Is(cmd.Err(), redis.Nil) {
 			return "", storage.ErrNotFound
-
 		}
 		return "", fmt.Errorf("%s: %v: алиас=%s", op, cmd.Err(), alias)
 	}
@@ -82,19 +77,13 @@ func (r *RedisStorage) DeleteURL(ctx context.Context, alias string) error {
 	return nil
 }
 
-func (r *RedisStorage) CheckExistAlias(ctx context.Context, alias string) error {
-	const op = "storage.RedisStorage.CheckExistAlias"
+func (r *RedisStorage) Disconnect(ctx context.Context) error {
+	const op = "storage.RedisStorage.Disconnect"
 
-	if alias == "" {
-		return storage.ErrAliasIsEmpty
-	}
-
-	exists, err := r.client.Exists(ctx, alias).Result()
+	err := r.client.Close()
 	if err != nil {
-		return fmt.Errorf("%s: %v: алиас=%s", op, err, alias)
+		return fmt.Errorf("%s: %v", op, err)
 	}
-	if exists == 0 {
-		return storage.ErrNotFound
-	}
+
 	return nil
 }

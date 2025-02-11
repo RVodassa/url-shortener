@@ -2,15 +2,14 @@ package app
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"github.com/RVodassa/url-shortener/internal/config"
 	grpchandler "github.com/RVodassa/url-shortener/internal/handler/grpc"
 	"github.com/RVodassa/url-shortener/internal/service"
 	"github.com/RVodassa/url-shortener/internal/storage"
 	"github.com/RVodassa/url-shortener/internal/storage/inMemory/redisStorage"
+	"github.com/RVodassa/url-shortener/internal/storage/sql/postgres"
 	"github.com/RVodassa/url-shortener/protos/genv1"
-	"github.com/go-redis/redis/v8"
 	"google.golang.org/grpc"
 	"log"
 	"net"
@@ -22,8 +21,9 @@ import (
 
 // Доступные хранилища
 const (
-	InMemoryStorage = "in-memory"
-	SqlStorage      = "sql"
+	Redis    = "redis"
+	InMemory = "in-memory"
+	Postgres = "postgres"
 )
 
 type App struct {
@@ -44,7 +44,7 @@ func (a *App) Run() {
 	defer cancel()
 
 	// инициализация хранилища
-	store, err := initStorage(ctx, a.cfg, a.StorageType)
+	store, err := NewStorage(ctx)
 	if err != nil {
 		log.Printf("ошибка: хранилище не готово к работе: %v", err)
 		return
@@ -65,6 +65,12 @@ func (a *App) Run() {
 	if err != nil {
 		log.Fatalf("ошибка при создании слушателя: %v", err)
 	}
+	defer func(lis net.Listener) {
+		err = lis.Close()
+		if err != nil {
+			log.Printf("ошибка при отложенном вызове listener.close: %v", err)
+		}
+	}(lis)
 
 	// Канал для обработки сигналов
 	signalChan := make(chan os.Signal, 1)
@@ -84,34 +90,38 @@ func (a *App) Run() {
 
 	ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	newGrpcServer.GracefulStop() // Остановка сервера
 
+	newGrpcServer.GracefulStop()
 	// TODO: мягкое завершение работы остальных частей приложения
 }
 
-func initStorage(ctx context.Context, cfg *config.Config, storageType string) (storage.Storage, error) {
+func NewStorage(ctx context.Context) (storage.Storage, error) {
+
+	storageType := os.Getenv("STORAGE_TYPE")
 	log.Printf("инициализация хранилища типа: %s", storageType)
 
 	var store storage.Storage
+	var err error
 
 	switch storageType {
-	case InMemoryStorage:
-		// Redis для in-memory storage
-		redisClient := redis.NewClient(&redis.Options{
-			Addr: cfg.Redis.Address,
-		})
-		if err := redisClient.Ping(ctx).Err(); err != nil {
-			return nil, fmt.Errorf("ошибка при подключении к Redis: %v", err)
-		}
-		store = redisStorage.New(redisClient)
-		log.Printf("хранилище доступно по адресу: %s\n", cfg.Redis.Address)
 
-	case SqlStorage:
-		// Postgres для sql storage
-		return nil, errors.New("postgres не реализован")
+	case Redis:
+		store, err = redisStorage.Connect(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return store, nil
+
+	case Postgres:
+		conn, errConn := postgres.ConnectDB(ctx)
+		if errConn != nil {
+			log.Fatalf("ошибка при подключении к PostgreSQL: %v", errConn)
+		}
+		store = postgres.New(conn)
+		return store, nil
+
 	default:
-		return nil, errors.New("неизвестный тип хранилища")
+		return nil, fmt.Errorf("неизвестный тип хранилища: %s", storageType)
 	}
 
-	return store, nil
 }

@@ -26,12 +26,15 @@ COPY --from=builder /app/url-shortener/url-shortener .
 
 # Копируем папку configs
 COPY ./configs /app/url-shortener/configs
+COPY ./migrations /app/url-shortener/migrations
+
+COPY .env ./
 
 # Открываем порт 8083
 EXPOSE 8083
 
 # Запускаем приложение
-ENTRYPOINT ["sh", "-c", "./url-shortener -cfg_path $CFG_PATH -storage $STORAGE"]
+ENTRYPOINT ["sh", "-c", "./url-shortener -cfg_path $CFG_PATH -storage $STORAGE_TYPE"]
 
 
 
