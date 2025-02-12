@@ -12,20 +12,20 @@ import (
 	"os"
 )
 
-// getDBConfig возвращает карту с переменными окружения для подключения к базе данных.
-func getDBConfig() map[string]string {
+// GetDBConfig возвращает карту с переменными окружения для подключения к базе данных.
+func GetDBConfig() map[string]string {
 	return map[string]string{
-		"host":     getEnv("DB_HOST", "localhost"),
-		"port":     getEnv("DB_PORT", "5432"),
-		"user":     getEnv("DB_USER", ""),
-		"password": getEnv("DB_PASSWORD", ""),
-		"name":     getEnv("DB_NAME", ""),
-		"ssl":      getEnv("DB_SSL", "disable"),
+		"host":     GetEnv("DB_HOST", "localhost"),
+		"port":     GetEnv("DB_PORT", "5432"),
+		"user":     GetEnv("DB_USER", ""),
+		"password": GetEnv("DB_PASSWORD", ""),
+		"name":     GetEnv("DB_NAME", ""),
+		"ssl":      GetEnv("DB_SSL", "disable"),
 	}
 }
 
-// getEnv возвращает значение переменной окружения или значение по умолчанию.
-func getEnv(key, defaultValue string) string {
+// GetEnv возвращает значение переменной окружения или значение по умолчанию.
+func GetEnv(key, defaultValue string) string {
 	value := os.Getenv(key)
 	if value == "" {
 		return defaultValue
@@ -37,7 +37,7 @@ func ConnectDB(ctx context.Context) (*pgxpool.Pool, error) {
 	const op = "postgres.ConnectDB"
 
 	// Получаем конфигурацию базы данных
-	config := getDBConfig()
+	config := GetDBConfig()
 
 	// Проверяем обязательные переменные
 	if config["user"] == "" {

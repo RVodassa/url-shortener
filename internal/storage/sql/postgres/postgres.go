@@ -7,14 +7,18 @@ import (
 	"github.com/RVodassa/url-shortener/internal/storage"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+type IPGX interface {
+	Exec(ctx context.Context, sql string, arguments ...any) (pgconn.CommandTag, error)
+	QueryRow(ctx context.Context, sql string, args ...any) pgx.Row
+	Close()
+}
 type Postgres struct {
-	pool *pgxpool.Pool
+	pool IPGX
 }
 
-func New(pool *pgxpool.Pool) *Postgres {
+func New(pool IPGX) *Postgres {
 	return &Postgres{pool: pool}
 }
 
