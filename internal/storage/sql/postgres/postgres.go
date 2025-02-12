@@ -10,17 +10,17 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type PostgresDB struct {
+type Postgres struct {
 	pool *pgxpool.Pool
 }
 
-func New(pool *pgxpool.Pool) *PostgresDB {
-	return &PostgresDB{pool: pool}
+func New(pool *pgxpool.Pool) *Postgres {
+	return &Postgres{pool: pool}
 }
 
 // SaveUrl сохраняет Url в базе данных.
-func (p *PostgresDB) SaveUrl(ctx context.Context, alias, urlsave string) error {
-	const op = "storage.PostgresDB.SaveUrl"
+func (p *Postgres) SaveUrl(ctx context.Context, alias, urlsave string) error {
+	const op = "storage.Postgres.SaveUrl"
 
 	if alias == "" {
 		return storage.ErrAliasIsEmpty
@@ -40,15 +40,15 @@ func (p *PostgresDB) SaveUrl(ctx context.Context, alias, urlsave string) error {
 				return storage.ErrExistAlias
 			}
 		}
-		return fmt.Errorf("%s: Url='%s', alias='%s'. %w", op, urlsave, alias, err)
+		return fmt.Errorf("%s: url='%s', alias='%s'. %w", op, urlsave, alias, err)
 	}
 
 	return nil
 }
 
 // GetUrl возвращает Url по его alias.
-func (p *PostgresDB) GetUrl(ctx context.Context, alias string) (string, error) {
-	const op = "storage.PostgresDB.GetUrl"
+func (p *Postgres) GetUrl(ctx context.Context, alias string) (string, error) {
+	const op = "storage.Postgres.GetUrl"
 
 	if alias == "" {
 		return "", storage.ErrAliasIsEmpty
@@ -69,8 +69,8 @@ func (p *PostgresDB) GetUrl(ctx context.Context, alias string) (string, error) {
 }
 
 // DeleteUrl удаляет Url по его alias.
-func (p *PostgresDB) DeleteUrl(ctx context.Context, alias string) error {
-	const op = "storage.PostgresDB.DeleteUrl"
+func (p *Postgres) DeleteUrl(ctx context.Context, alias string) error {
+	const op = "storage.Postgres.DeleteUrl"
 
 	if alias == "" {
 		return storage.ErrAliasIsEmpty
@@ -92,7 +92,7 @@ func (p *PostgresDB) DeleteUrl(ctx context.Context, alias string) error {
 }
 
 // Disconnect закрывает соединение с базой данных.
-func (p *PostgresDB) Disconnect(ctx context.Context) error {
+func (p *Postgres) Disconnect(ctx context.Context) error {
 	p.pool.Close()
 	return nil
 }

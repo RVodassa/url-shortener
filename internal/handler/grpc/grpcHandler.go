@@ -18,10 +18,10 @@ type ServiceProvider interface {
 }
 
 var (
-	ErrUrlEmpty   = errors.New("ошибка: пустой Url")
-	ErrBadUrl     = errors.New("ошибка: невалидный Url")
+	ErrUrlEmpty   = errors.New("ошибка: пустой url")
+	ErrBadUrl     = errors.New("ошибка: невалидный url")
 	ErrAliasEmpty = errors.New("ошибка: пустой alias")
-	ErrNotFound   = errors.New("ошибка: Url не найден")
+	ErrNotFound   = errors.New("ошибка: url не найден")
 	ErrInternal   = errors.New("ошибка: внутренняя ошибка")
 )
 

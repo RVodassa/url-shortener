@@ -25,7 +25,7 @@ func (r *RedisStorage) SaveUrl(ctx context.Context, alias, UrlSave string) error
 
 	exists, err := r.client.Exists(ctx, alias).Result()
 	if err != nil {
-		return fmt.Errorf("%s: Url='%s', alias='%s'. %w", op, UrlSave, alias, err)
+		return fmt.Errorf("%s: url='%s', alias='%s'. %w", op, UrlSave, alias, err)
 	}
 
 	if exists > 0 {
@@ -34,7 +34,7 @@ func (r *RedisStorage) SaveUrl(ctx context.Context, alias, UrlSave string) error
 
 	cmd := r.client.Set(ctx, alias, UrlSave, 0)
 	if cmd.Err() != nil {
-		return fmt.Errorf("%s: Url='%s', alias='%s'. %w", op, UrlSave, alias, cmd.Err())
+		return fmt.Errorf("%s: url='%s', alias='%s'. %w", op, UrlSave, alias, cmd.Err())
 	}
 
 	return nil

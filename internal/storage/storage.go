@@ -12,6 +12,7 @@ var (
 	ErrExistAlias   = errors.New("ошибка: alias занят")
 )
 
+//go:generate mockgen -source=storage.go -destination=./mock/storage_mock.go
 type Storage interface {
 	SaveUrl(ctx context.Context, alias, UrlSave string) error
 	GetUrl(ctx context.Context, alias string) (string, error)

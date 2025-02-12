@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/RVodassa/url-shortener/internal/config"
 	grpchandler "github.com/RVodassa/url-shortener/internal/handler/grpc"
+	"github.com/RVodassa/url-shortener/internal/lib/random"
 	"github.com/RVodassa/url-shortener/internal/service"
 	"github.com/RVodassa/url-shortener/internal/storage"
 	"github.com/RVodassa/url-shortener/internal/storage/inMemory/mapStorage"
@@ -57,7 +58,8 @@ func (a *App) Run() {
 		os.Exit(1)
 	}
 
-	newService := service.New(store)          // сервис
+	rand := random.New()
+	newService := service.New(store, rand)    // сервис
 	newHandler := grpchandler.New(newService) // handler
 
 	// Слушатель на порту

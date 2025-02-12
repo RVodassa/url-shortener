@@ -4,18 +4,18 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/RVodassa/url-shortener/internal/lib/random"
 	"github.com/RVodassa/url-shortener/internal/storage"
 	"net/url"
 )
 
+//go:generate mockgen -source=service.go -destination=.././lib/random/mock/random_mock.go
 type RandomProvider interface {
 	RandomString(int) (string, error)
 }
 
 var (
-	ErrNotFound = errors.New("ошибка: Url не найден")
-	ErrBadUrl   = errors.New("ошибка: невалидный Url")
+	ErrNotFound = errors.New("ошибка: url не найден")
+	ErrBadUrl   = errors.New("ошибка: невалидный url")
 )
 
 // TODO: в конфиг
@@ -26,10 +26,10 @@ type Service struct {
 	Random  RandomProvider
 }
 
-func New(storage storage.Storage) *Service {
+func New(storage storage.Storage, random RandomProvider) *Service {
 	return &Service{
 		Storage: storage,
-		Random:  random.New(),
+		Random:  random,
 	}
 }
 
