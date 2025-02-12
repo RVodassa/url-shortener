@@ -25,7 +25,7 @@ func (r *RedisStorage) SaveURL(ctx context.Context, alias, urlSave string) error
 
 	exists, err := r.client.Exists(ctx, alias).Result()
 	if err != nil {
-		return fmt.Errorf("%s: %v: алиас=%s", op, err, alias)
+		return fmt.Errorf("%s: url='%s', alias='%s'. %w", op, urlSave, alias, err)
 	}
 
 	if exists > 0 {
@@ -34,7 +34,7 @@ func (r *RedisStorage) SaveURL(ctx context.Context, alias, urlSave string) error
 
 	cmd := r.client.Set(ctx, alias, urlSave, 0)
 	if cmd.Err() != nil {
-		return fmt.Errorf("%s: %v: url=%s alias=%s", op, cmd.Err(), urlSave, alias)
+		return fmt.Errorf("%s: url='%s', alias='%s'. %w", op, urlSave, alias, cmd.Err())
 	}
 
 	return nil
@@ -52,7 +52,7 @@ func (r *RedisStorage) GetUrl(ctx context.Context, alias string) (string, error)
 		if errors.Is(cmd.Err(), redis.Nil) {
 			return "", storage.ErrNotFound
 		}
-		return "", fmt.Errorf("%s: %v: алиас=%s", op, cmd.Err(), alias)
+		return "", fmt.Errorf("%s: alias='%s'. %w", op, alias, cmd.Err())
 	}
 
 	return cmd.Val(), nil
@@ -67,7 +67,7 @@ func (r *RedisStorage) DeleteURL(ctx context.Context, alias string) error {
 
 	cmd := r.client.Del(ctx, alias)
 	if cmd.Err() != nil {
-		return fmt.Errorf("%s: алиас=%s: %w", op, alias, cmd.Err())
+		return fmt.Errorf("%s: alias='%s'. %w", op, alias, cmd.Err())
 	}
 
 	if cmd.Val() == 0 {
@@ -82,7 +82,7 @@ func (r *RedisStorage) Disconnect(ctx context.Context) error {
 
 	err := r.client.Close()
 	if err != nil {
-		return fmt.Errorf("%s: %v", op, err)
+		return fmt.Errorf("%s: %w", op, err)
 	}
 
 	return nil

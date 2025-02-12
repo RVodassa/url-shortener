@@ -40,7 +40,7 @@ func (p *PostgresDB) SaveURL(ctx context.Context, alias, urlSave string) error {
 				return storage.ErrExistAlias
 			}
 		}
-		return fmt.Errorf("%s: %v: url=%s alias=%s", op, err, urlSave, alias)
+		return fmt.Errorf("%s: url='%s', alias='%s'. %w", op, urlSave, alias, err)
 	}
 
 	return nil
@@ -62,7 +62,7 @@ func (p *PostgresDB) GetUrl(ctx context.Context, alias string) (string, error) {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return "", storage.ErrNotFound
 		}
-		return "", fmt.Errorf("%s: %v: alias=%s", op, err, alias)
+		return "", fmt.Errorf("%s: alias='%s'. %w", op, alias, err)
 	}
 
 	return url, nil
@@ -78,12 +78,14 @@ func (p *PostgresDB) DeleteURL(ctx context.Context, alias string) error {
 
 	query := `DELETE FROM urls WHERE alias = $1`
 
-	_, err := p.pool.Exec(ctx, query, alias)
+	result, err := p.pool.Exec(ctx, query, alias)
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return storage.ErrNotFound
-		}
-		return fmt.Errorf("%s: %v: алиас=%s", op, err, alias)
+		return fmt.Errorf("%s: alias='%s'. %w", op, alias, err)
+	}
+
+	// Проверяем количество затронутых строк
+	if result.RowsAffected() == 0 {
+		return storage.ErrNotFound
 	}
 
 	return nil

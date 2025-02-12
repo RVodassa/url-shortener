@@ -9,6 +9,7 @@ import (
 )
 
 // TODO: postgres, tests, map for in-memory
+// TODO: Ошибка:
 
 func main() {
 	// Параметры запуска

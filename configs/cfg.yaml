@@ -2,7 +2,7 @@ env: "local" # local, dev, prod
 
 http_server:
   host: "localhost"
-  port: "8083"
+  port: ":8083"
   network: "tcp"
   request_timeout: 4s # время на чтение запроса, время на отправку ответа
   idle_timeout: 60s # время жизни соед. с клиентом

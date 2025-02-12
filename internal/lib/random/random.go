@@ -31,7 +31,7 @@ func (r *Random) RandomString(length int) (string, error) {
 	defer r.mu.Unlock()
 
 	if length <= 0 {
-		return "", fmt.Errorf("%s: %w: length=%d", op, ErrShortLength, length)
+		return "", fmt.Errorf("%s: length=%d. %w", op, length, ErrShortLength)
 	}
 
 	alias := make([]byte, length)

@@ -14,8 +14,8 @@ type RandomProvider interface {
 }
 
 var (
-	ErrNotFound = errors.New("ошибка: url с таким alias не найден")
-	ErrBadUrl   = errors.New("ошибка: недопустимая ссылка")
+	ErrNotFound = errors.New("ошибка: url не найден")
+	ErrBadUrl   = errors.New("ошибка: неправильный url")
 )
 
 // TODO: в конфиг

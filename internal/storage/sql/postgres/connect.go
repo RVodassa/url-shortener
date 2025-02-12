@@ -41,13 +41,13 @@ func ConnectDB(ctx context.Context) (*pgxpool.Pool, error) {
 
 	// Проверяем обязательные переменные
 	if config["user"] == "" {
-		return nil, fmt.Errorf("%s: ошибка: переменная окружения DB_USER не задана", op)
+		return nil, fmt.Errorf("%s: пустой DB_USER", op)
 	}
 	if config["password"] == "" {
-		return nil, fmt.Errorf("%s: ошибка: переменная окружения DB_PASSWORD не задана", op)
+		return nil, fmt.Errorf("%s: пустой DB_PASSWORD", op)
 	}
 	if config["name"] == "" {
-		return nil, fmt.Errorf("%s: ошибка: переменная окружения DB_NAME не задана", op)
+		return nil, fmt.Errorf("%s: пустой DB_NAME", op)
 	}
 
 	// Формируем строку подключения
@@ -56,22 +56,22 @@ func ConnectDB(ctx context.Context) (*pgxpool.Pool, error) {
 
 	conn, err := pgxpool.New(context.Background(), connStr)
 	if err != nil {
-		log.Fatalf("%s: ошибка подключения к базе данных. Ошибка: %v\n", op, err)
+		return nil, fmt.Errorf("%s: New. %w", op, err)
 	}
 
 	// Проверяем соединение
 	err = conn.Ping(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("%s: не удалось проверить подключение к базе данных. Ошибка: %v", op, err)
+		return nil, fmt.Errorf("%s: Ping. %w", op, err)
 	}
-	log.Printf("%s: подключение к базе данных прошло успешно", op)
 
 	log.Printf("%s: запуск миграций", op)
 	err = runMigrations(connStr)
 	if err != nil {
-		return nil, fmt.Errorf("%s: ошибка при выполнении миграций. Ошибка: %v", op, err)
+		return nil, fmt.Errorf("%s: %v", op, err)
 	}
-	log.Printf("%s: миграция прошла успешно", op)
+
+	log.Printf("%s: база данных готова к работе", op)
 
 	return conn, nil
 }
@@ -81,24 +81,22 @@ func runMigrations(connStr string) error {
 
 	m, err := migrate.New("file://migrations", connStr)
 	if err != nil {
-		log.Printf("%s: %s\n", op, err)
-		return fmt.Errorf("%s: не удалось создать объект миграции. Ошибка: %v", op, err)
+		return fmt.Errorf("%s: New. %v", op, err)
 	}
 	defer func() {
 		if m != nil {
 			errSource, errDB := m.Close()
 			if errSource != nil {
-				log.Printf("%s: ошибка при закрытии миграций. Ошибка: %v\n", op, errSource)
+				log.Printf("%s: m.Close. %v", op, errSource)
 			}
 			if errDB != nil {
-				log.Printf("%s: ошибка при закрытии миграций. Ошибка: %v\n", op, errDB)
+				log.Printf("%s: m.Close. %v", op, errDB)
 			}
 			return
 		}
 	}()
 
 	if err = m.Up(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
-		log.Printf("%s: %s\n", op, err)
 		return fmt.Errorf("%s: не удалось применить миграции. Ошибка: %v", op, err)
 	}
 

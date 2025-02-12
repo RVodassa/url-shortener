@@ -23,7 +23,7 @@ type HTTPServer struct {
 func MustLoad(configPath string) *Config {
 	_, err := os.Stat(configPath)
 	if os.IsNotExist(err) {
-		log.Fatalf("ошибка: конфиг. файл %s не найден", configPath)
+		log.Fatalf("не найден конфиг файл. cfg_path=%s", configPath)
 	}
 
 	var cfg Config

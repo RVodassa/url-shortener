@@ -8,8 +8,8 @@ import (
 var (
 	ErrUrlIsEmpty   = errors.New("ошибка: пустой url")
 	ErrAliasIsEmpty = errors.New("ошибка: пустой alias")
-	ErrNotFound     = errors.New("ошибка: url с таким alias не найден")
-	ErrExistAlias   = errors.New("ошибка: url с таким alias уже существует")
+	ErrNotFound     = errors.New("ошибка: url не найден")
+	ErrExistAlias   = errors.New("ошибка: alias занят")
 )
 
 type Storage interface {
