@@ -230,15 +230,12 @@ func TestService_DeleteUrl(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Настраиваем моки
 			if tt.mockDelete != nil {
 				tt.mockDelete()
 			}
 
-			// Вызываем метод DeleteUrl
 			err := s.DeleteUrl(context.Background(), tt.alias)
 
-			// Проверяем результат
 			if tt.expectedErr != nil {
 				assert.Error(t, err)
 				assert.Equal(t, tt.expectedErr.Error(), err.Error())

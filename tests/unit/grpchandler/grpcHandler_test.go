@@ -3,8 +3,6 @@ package grpchandler_test
 import (
 	"context"
 	"errors"
-	"testing"
-
 	"github.com/RVodassa/url-shortener/internal/handler/grpc"
 	"github.com/RVodassa/url-shortener/internal/service"
 	mockService "github.com/RVodassa/url-shortener/internal/service/mock"
@@ -13,6 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"testing"
 )
 
 func TestGrpcHandler_SaveUrl(t *testing.T) {
