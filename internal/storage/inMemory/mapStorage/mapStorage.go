@@ -17,13 +17,13 @@ func New() storage.Storage {
 	}
 }
 
-func (s *MapStorage) SaveURL(ctx context.Context, alias, urlSave string) error {
-	const op = "storage.MapStorage.SaveURL"
+func (s *MapStorage) SaveUrl(ctx context.Context, alias, UrlSave string) error {
+	const op = "storage.MapStorage.SaveUrl"
 
 	if alias == "" {
 		return storage.ErrAliasIsEmpty
 	}
-	if urlSave == "" {
+	if UrlSave == "" {
 		return storage.ErrUrlIsEmpty
 	}
 
@@ -34,7 +34,7 @@ func (s *MapStorage) SaveURL(ctx context.Context, alias, urlSave string) error {
 		return storage.ErrExistAlias
 	}
 
-	s.store[alias] = urlSave
+	s.store[alias] = UrlSave
 	return nil
 }
 
@@ -48,16 +48,16 @@ func (s *MapStorage) GetUrl(ctx context.Context, alias string) (string, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	url, exists := s.store[alias]
+	Url, exists := s.store[alias]
 	if !exists {
 		return "", storage.ErrNotFound
 	}
 
-	return url, nil
+	return Url, nil
 }
 
-func (s *MapStorage) DeleteURL(ctx context.Context, alias string) error {
-	const op = "storage.MapStorage.DeleteURL"
+func (s *MapStorage) DeleteUrl(ctx context.Context, alias string) error {
+	const op = "storage.MapStorage.DeleteUrl"
 
 	if alias == "" {
 		return storage.ErrAliasIsEmpty

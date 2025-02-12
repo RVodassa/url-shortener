@@ -14,8 +14,8 @@ type RandomProvider interface {
 }
 
 var (
-	ErrNotFound = errors.New("ошибка: url не найден")
-	ErrBadUrl   = errors.New("ошибка: неправильный url")
+	ErrNotFound = errors.New("ошибка: Url не найден")
+	ErrBadUrl   = errors.New("ошибка: невалидный Url")
 )
 
 // TODO: в конфиг
@@ -33,13 +33,13 @@ func New(storage storage.Storage) *Service {
 	}
 }
 
-// SaveURL сохраняет URL и возвращает алиас.
-func (s *Service) SaveURL(ctx context.Context, urlStr string) (string, error) {
-	const op = "service.SaveURL"
+// SaveUrl сохраняет Url и возвращает алиас.
+func (s *Service) SaveUrl(ctx context.Context, urlStr string) (string, error) {
+	const op = "service.SaveUrl"
 
-	// Валидация URL
-	parsedURL, err := url.ParseRequestURI(urlStr)
-	if err != nil || parsedURL.Scheme == "" || parsedURL.Host == "" {
+	// Валидация Url
+	parsedUrl, err := url.ParseRequestURI(urlStr)
+	if err != nil || parsedUrl.Scheme == "" || parsedUrl.Host == "" {
 		return "", ErrBadUrl
 	}
 
@@ -52,7 +52,7 @@ func (s *Service) SaveURL(ctx context.Context, urlStr string) (string, error) {
 			return "", fmt.Errorf("%s: %w", op, err)
 		}
 
-		err = s.Storage.SaveURL(ctx, alias, urlStr)
+		err = s.Storage.SaveUrl(ctx, alias, urlStr)
 		if err != nil {
 			if errors.Is(err, storage.ErrExistAlias) {
 				continue
@@ -63,8 +63,8 @@ func (s *Service) SaveURL(ctx context.Context, urlStr string) (string, error) {
 	}
 }
 
-func (s *Service) GetURL(ctx context.Context, alias string) (string, error) {
-	const op = "service.GetURL"
+func (s *Service) GetUrl(ctx context.Context, alias string) (string, error) {
+	const op = "service.GetUrl"
 
 	getUrl, err := s.Storage.GetUrl(ctx, alias)
 	if err != nil {
@@ -77,10 +77,10 @@ func (s *Service) GetURL(ctx context.Context, alias string) (string, error) {
 	return getUrl, nil
 }
 
-func (s *Service) DeleteURL(ctx context.Context, alias string) error {
-	const op = "service.DeleteURL"
+func (s *Service) DeleteUrl(ctx context.Context, alias string) error {
+	const op = "service.DeleteUrl"
 
-	if err := s.Storage.DeleteURL(ctx, alias); err != nil {
+	if err := s.Storage.DeleteUrl(ctx, alias); err != nil {
 		if errors.Is(err, storage.ErrNotFound) {
 			return ErrNotFound
 		}

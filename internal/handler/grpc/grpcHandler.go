@@ -10,20 +10,27 @@ import (
 	"log"
 )
 
+//go:generate mockgen -source=grpcHandler.go -destination=./../../service/mock/service_mock.go
+type ServiceProvider interface {
+	SaveUrl(ctx context.Context, UrlStr string) (string, error)
+	GetUrl(ctx context.Context, alias string) (string, error)
+	DeleteUrl(ctx context.Context, alias string) error
+}
+
 var (
-	ErrUrlEmpty   = errors.New("ошибка: пустой url")
-	ErrBadUrl     = errors.New("ошибка: неправильный url")
+	ErrUrlEmpty   = errors.New("ошибка: пустой Url")
+	ErrBadUrl     = errors.New("ошибка: невалидный Url")
 	ErrAliasEmpty = errors.New("ошибка: пустой alias")
-	ErrNotFound   = errors.New("ошибка: url не найден")
+	ErrNotFound   = errors.New("ошибка: Url не найден")
 	ErrInternal   = errors.New("ошибка: внутренняя ошибка")
 )
 
 type GrpcHandler struct {
-	Service *service.Service
+	Service ServiceProvider
 	genv1.UnimplementedUrlShortenerServer
 }
 
-func New(service *service.Service) *GrpcHandler {
+func New(service ServiceProvider) *GrpcHandler {
 	return &GrpcHandler{
 		Service: service,
 	}
@@ -38,8 +45,8 @@ func (g *GrpcHandler) SaveUrl(ctx context.Context, req *genv1.SaveUrlRequest) (*
 		return nil, status.Error(codes.InvalidArgument, ErrUrlEmpty.Error())
 	}
 
-	// Вызов сервиса для сохранения URL
-	alias, err := g.Service.SaveURL(ctx, req.Url)
+	// Вызов сервиса для сохранения Url
+	alias, err := g.Service.SaveUrl(ctx, req.Url)
 	if err != nil {
 		log.Printf("%s: url='%s'. %v", op, req.Url, err)
 
@@ -54,7 +61,7 @@ func (g *GrpcHandler) SaveUrl(ctx context.Context, req *genv1.SaveUrlRequest) (*
 		Alias: alias,
 	}
 
-	log.Printf("%s: alias='%s'. сохранен URL", op, alias)
+	log.Printf("%s: alias='%s'. сохранен Url", op, alias)
 	return response, nil
 }
 
@@ -66,7 +73,7 @@ func (g *GrpcHandler) GetUrl(ctx context.Context, req *genv1.GetUrlRequest) (*ge
 		return nil, status.Error(codes.InvalidArgument, ErrAliasEmpty.Error())
 	}
 
-	url, err := g.Service.GetURL(ctx, req.Alias)
+	Url, err := g.Service.GetUrl(ctx, req.Alias)
 	if err != nil {
 		log.Printf("%s: alias='%s'. %v", op, req.Alias, err)
 		if errors.Is(err, service.ErrNotFound) {
@@ -75,8 +82,8 @@ func (g *GrpcHandler) GetUrl(ctx context.Context, req *genv1.GetUrlRequest) (*ge
 		return nil, status.Error(codes.Internal, ErrInternal.Error())
 	}
 
-	log.Printf("%s: alias='%s'. получен URL", op, req.Alias)
-	return &genv1.GetUrlResponse{Url: url}, nil
+	log.Printf("%s: alias='%s'. получен Url", op, req.Alias)
+	return &genv1.GetUrlResponse{Url: Url}, nil
 }
 
 func (g *GrpcHandler) DeleteUrl(ctx context.Context, req *genv1.DeleteUrlRequest) (*genv1.DeleteUrlResponse, error) {
@@ -87,7 +94,7 @@ func (g *GrpcHandler) DeleteUrl(ctx context.Context, req *genv1.DeleteUrlRequest
 		return nil, status.Error(codes.InvalidArgument, ErrAliasEmpty.Error())
 	}
 
-	err := g.Service.DeleteURL(ctx, req.Alias)
+	err := g.Service.DeleteUrl(ctx, req.Alias)
 	if err != nil {
 		log.Printf("%s: alias='%s'. %v", op, req.Alias, err)
 		if errors.Is(err, service.ErrNotFound) {
@@ -100,6 +107,6 @@ func (g *GrpcHandler) DeleteUrl(ctx context.Context, req *genv1.DeleteUrlRequest
 		Status: "OK", // eng
 	}
 
-	log.Printf("%s: alias='%s'. удален URL", op, req.Alias)
+	log.Printf("%s: alias='%s'. удален Url", op, req.Alias)
 	return response, nil
 }

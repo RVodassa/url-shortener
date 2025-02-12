@@ -12,29 +12,29 @@ type RedisStorage struct {
 	client *redis.Client
 }
 
-func (r *RedisStorage) SaveURL(ctx context.Context, alias, urlSave string) error {
-	const op = "storage.RedisStorage.SaveURL"
+func (r *RedisStorage) SaveUrl(ctx context.Context, alias, UrlSave string) error {
+	const op = "storage.RedisStorage.SaveUrl"
 
 	if alias == "" {
 		return storage.ErrAliasIsEmpty
 	}
 
-	if urlSave == "" {
+	if UrlSave == "" {
 		return storage.ErrUrlIsEmpty
 	}
 
 	exists, err := r.client.Exists(ctx, alias).Result()
 	if err != nil {
-		return fmt.Errorf("%s: url='%s', alias='%s'. %w", op, urlSave, alias, err)
+		return fmt.Errorf("%s: Url='%s', alias='%s'. %w", op, UrlSave, alias, err)
 	}
 
 	if exists > 0 {
 		return storage.ErrExistAlias
 	}
 
-	cmd := r.client.Set(ctx, alias, urlSave, 0)
+	cmd := r.client.Set(ctx, alias, UrlSave, 0)
 	if cmd.Err() != nil {
-		return fmt.Errorf("%s: url='%s', alias='%s'. %w", op, urlSave, alias, cmd.Err())
+		return fmt.Errorf("%s: Url='%s', alias='%s'. %w", op, UrlSave, alias, cmd.Err())
 	}
 
 	return nil
@@ -58,8 +58,8 @@ func (r *RedisStorage) GetUrl(ctx context.Context, alias string) (string, error)
 	return cmd.Val(), nil
 }
 
-func (r *RedisStorage) DeleteURL(ctx context.Context, alias string) error {
-	const op = "storage.RedisStorage.DeleteURL"
+func (r *RedisStorage) DeleteUrl(ctx context.Context, alias string) error {
+	const op = "storage.RedisStorage.DeleteUrl"
 
 	if alias == "" {
 		return storage.ErrAliasIsEmpty

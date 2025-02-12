@@ -18,20 +18,20 @@ func New(pool *pgxpool.Pool) *PostgresDB {
 	return &PostgresDB{pool: pool}
 }
 
-// SaveURL сохраняет URL в базе данных.
-func (p *PostgresDB) SaveURL(ctx context.Context, alias, urlSave string) error {
-	const op = "storage.PostgresDB.SaveURL"
+// SaveUrl сохраняет Url в базе данных.
+func (p *PostgresDB) SaveUrl(ctx context.Context, alias, urlsave string) error {
+	const op = "storage.PostgresDB.SaveUrl"
 
 	if alias == "" {
 		return storage.ErrAliasIsEmpty
 	}
-	if urlSave == "" {
+	if urlsave == "" {
 		return storage.ErrUrlIsEmpty
 	}
 
-	query := `INSERT INTO urls (alias, url) VALUES ($1, $2)`
+	query := `INSERT INTO urls (alias, Url) VALUES ($1, $2)`
 
-	_, err := p.pool.Exec(ctx, query, alias, urlSave)
+	_, err := p.pool.Exec(ctx, query, alias, urlsave)
 	if err != nil {
 		// Проверка на ошибку уникальности
 		var pgErr *pgconn.PgError
@@ -40,13 +40,13 @@ func (p *PostgresDB) SaveURL(ctx context.Context, alias, urlSave string) error {
 				return storage.ErrExistAlias
 			}
 		}
-		return fmt.Errorf("%s: url='%s', alias='%s'. %w", op, urlSave, alias, err)
+		return fmt.Errorf("%s: Url='%s', alias='%s'. %w", op, urlsave, alias, err)
 	}
 
 	return nil
 }
 
-// GetUrl возвращает URL по его alias.
+// GetUrl возвращает Url по его alias.
 func (p *PostgresDB) GetUrl(ctx context.Context, alias string) (string, error) {
 	const op = "storage.PostgresDB.GetUrl"
 
@@ -54,10 +54,10 @@ func (p *PostgresDB) GetUrl(ctx context.Context, alias string) (string, error) {
 		return "", storage.ErrAliasIsEmpty
 	}
 
-	var url string
-	query := `SELECT url FROM urls WHERE alias = $1`
+	var Url string
+	query := `SELECT Url FROM urls WHERE alias = $1`
 
-	err := p.pool.QueryRow(ctx, query, alias).Scan(&url)
+	err := p.pool.QueryRow(ctx, query, alias).Scan(&Url)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return "", storage.ErrNotFound
@@ -65,12 +65,12 @@ func (p *PostgresDB) GetUrl(ctx context.Context, alias string) (string, error) {
 		return "", fmt.Errorf("%s: alias='%s'. %w", op, alias, err)
 	}
 
-	return url, nil
+	return Url, nil
 }
 
-// DeleteURL удаляет URL по его alias.
-func (p *PostgresDB) DeleteURL(ctx context.Context, alias string) error {
-	const op = "storage.PostgresDB.DeleteURL"
+// DeleteUrl удаляет Url по его alias.
+func (p *PostgresDB) DeleteUrl(ctx context.Context, alias string) error {
+	const op = "storage.PostgresDB.DeleteUrl"
 
 	if alias == "" {
 		return storage.ErrAliasIsEmpty
