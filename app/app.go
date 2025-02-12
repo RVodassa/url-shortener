@@ -7,6 +7,7 @@ import (
 	grpchandler "github.com/RVodassa/url-shortener/internal/handler/grpc"
 	"github.com/RVodassa/url-shortener/internal/service"
 	"github.com/RVodassa/url-shortener/internal/storage"
+	"github.com/RVodassa/url-shortener/internal/storage/inMemory/mapStorage"
 	"github.com/RVodassa/url-shortener/internal/storage/inMemory/redisStorage"
 	"github.com/RVodassa/url-shortener/internal/storage/sql/postgres"
 	"github.com/RVodassa/url-shortener/protos/genv1"
@@ -22,7 +23,7 @@ import (
 // Доступные хранилища
 const (
 	Redis    = "redis"
-	InMemory = "in-memory"
+	Map      = "map"
 	Postgres = "postgres"
 )
 
@@ -81,9 +82,9 @@ func (a *App) Run() {
 	genv1.RegisterUrlShortenerServer(newGrpcServer, newHandler)
 
 	go func() {
-		log.Printf("%s: запуск gRPC сервера. port=[%s], network=[%s]\n", op, a.cfg.Port, a.cfg.Network)
+		log.Printf("%s: gRPC server runnig... Port='%s' Network='%s'", op, a.cfg.Port, a.cfg.Network)
 		if err = newGrpcServer.Serve(lis); err != nil {
-			log.Printf("%s: запуск сервера. Ошибка: %v", op, err)
+			log.Printf("%s: gRPC server runnig... Ошибка: %v", op, err)
 			signalChan <- syscall.SIGTERM
 		}
 	}()
@@ -94,8 +95,12 @@ func (a *App) Run() {
 
 	ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-
 	newGrpcServer.GracefulStop()
+
+	err = store.Disconnect(ctx)
+	if err != nil {
+		log.Printf("%s: disconnect store. Ошибка: %v", op, err)
+	}
 
 	// TODO: мягкое завершение работы остальных частей приложения
 }
@@ -117,7 +122,9 @@ func NewStorage(ctx context.Context) (storage.Storage, error) {
 			return nil, err
 		}
 		return store, nil
-
+	case Map:
+		store = mapStorage.New()
+		return store, nil
 	case Postgres:
 		conn, errConn := postgres.ConnectDB(ctx)
 		if errConn != nil {
