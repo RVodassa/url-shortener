@@ -9,10 +9,10 @@ import (
 
 type Config struct {
 	Env        string `yaml:"env" env-required:"true"`
-	HTTPServer `yaml:"http_server"`
+	GRPCServer `yaml:"grpc_server"`
 }
 
-type HTTPServer struct {
+type GRPCServer struct {
 	Host        string        `yaml:"host" env-required:"true"`
 	Port        string        `yaml:"port" env-required:"true"`
 	Network     string        `yaml:"network" env-required:"true"`
