@@ -1,6 +1,6 @@
 env: "local" # local, dev, prod
 
-GRPCServer:
+grpc_server:
   host: "localhost"
   port: ":8083"
   network: "tcp"

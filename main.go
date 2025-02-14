@@ -1,38 +1,31 @@
 package main
 
 import (
-	"flag"
 	"github.com/RVodassa/url-shortener/app"
 	"github.com/RVodassa/url-shortener/internal/config"
 	"github.com/joho/godotenv"
 	"log"
+	"os"
 )
 
-// TODO: postgres, tests, map for in-memory
-// TODO: Ошибка:
-
 func main() {
-	// Параметры запуска
-	var storageType string // тип хранилища (default: inMemoryStorage)
-	flag.StringVar(&storageType, "storage", app.Redis, "postgres or default redis")
 
-	var configPath string // путь к файлу конф.
-	flag.StringVar(&configPath, "cfg_path", "", "path to config file")
-
-	flag.Parse()
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatalf("Error loading .env file: %v", err)
+		return
+	}
+	configPath := os.Getenv("CFG_PATH")
+	storageType := os.Getenv("STORAGE_TYPE")
 
 	// загрузка конфиг.
 	cfg := config.MustLoad(configPath)
 	if cfg == nil {
 		log.Fatal("ошибка: конфиг. не готов к работе")
 	}
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatalf("Error loading .env file: %v", err)
-		return
-	}
 
-	// новый инстанс приложения и запуск
+	// запуск
 	newApp := app.New(cfg, storageType)
 	newApp.Run()
+
 }
